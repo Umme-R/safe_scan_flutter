@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safe_scan_flutter/qr_code_scanner.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 void main() {
@@ -33,6 +34,18 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String? qrCodeValue;
 
+  Future<void> _launchUrl(String urlString) async{
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url)) {
+      // If it fails (e.g., malformed link), show a snackbar or error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch $urlString')),
+        );
+      }
+    }
+
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +53,14 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[Text(qrCodeValue ?? 'You have not scanned a QR Code')],
+          children: <Widget>[
+            // Text(qrCodeValue ?? 'You have not scanned a QR Code'),
+            // const Text("testing...is this thing on?"),
+            if (qrCodeValue != null)
+              ElevatedButton(onPressed: ()=> _launchUrl(qrCodeValue!), 
+              child: Text("open link! $qrCodeValue"))
+
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
