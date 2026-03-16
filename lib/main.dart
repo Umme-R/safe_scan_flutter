@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:safe_scan_flutter/qr_code_scanner.dart';
+<<<<<<< HEAD
 import 'package:safe_scan_flutter/safe_browsing_service.dart';
+=======
+import 'package:url_launcher/url_launcher.dart';
+>>>>>>> a4c1df53cab962999de80a18887977ed97068825
 
-Future<void> main() async {
+Future<void> Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   runApp(const MyApp());
@@ -36,6 +40,18 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   SafeBrowsingResult? scanResult;
 
+  Future<void> _launchUrl(String urlString) async{
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url)) {
+      // If it fails (e.g., malformed link), show a snackbar or error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch $urlString')),
+        );
+      }
+    }
+
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+<<<<<<< HEAD
             Text(scanResult?.url ?? 'You have not scanned a QR Code'),
             const SizedBox(height: 12),
             if (scanResult != null) Text(scanResult!.statusMessage),
@@ -51,6 +68,14 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(height: 8),
               ...scanResult!.detailsLines.map(Text.new),
             ],
+=======
+            // Text(qrCodeValue ?? 'You have not scanned a QR Code'),
+            // const Text("testing...is this thing on?"),
+            if (qrCodeValue != null)
+              ElevatedButton(onPressed: ()=> _launchUrl(qrCodeValue!), 
+              child: Text("open link! $qrCodeValue"))
+
+>>>>>>> a4c1df53cab962999de80a18887977ed97068825
           ],
         ),
       ),

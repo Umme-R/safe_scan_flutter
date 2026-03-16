@@ -72,8 +72,8 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
           ),
           Positioned(
             bottom: 30,
-            left: 0,
-            right: 0,
+            left: 20,
+            right: 50,
             child: Center(
               child: InkWell(
                 onTap: () async {
