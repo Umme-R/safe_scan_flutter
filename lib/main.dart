@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:safe_scan_flutter/qr_code_scanner.dart';
-<<<<<<< HEAD
-import 'package:safe_scan_flutter/safe_browsing_service.dart';
-=======
-import 'package:url_launcher/url_launcher.dart';
->>>>>>> a4c1df53cab962999de80a18887977ed97068825
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:safe_scan_flutter/scan_result_screen.dart';
 
-Future<void> Future<void> main() async {
+
+// void main() {
+//   runApp(const MyApp());
+// }
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
   runApp(const MyApp());
@@ -22,11 +22,37 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter QR Code Scanner Demo',
       theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
-      home: const MyHomePage(title: 'QR Code Scanner'),
+      home: MyHomePage(title: "QR Code Scanner"),
     );
   }
 }
 
+class Home extends StatelessWidget {
+  const Home({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("ScanSafe Home Page"),
+        centerTitle: true,
+      ),
+      floatingActionButton: SizedBox(
+        width: 300,
+        height: 300,
+        child: FloatingActionButton(
+          onPressed: (){},
+          child: const Icon(Icons.qr_code_scanner, size: 300,)
+        ),
+        
+          
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+
+    );
+  
+  }
+}
 
 class MyHomePage extends StatefulWidget {
   final String title;
@@ -38,60 +64,49 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  SafeBrowsingResult? scanResult;
 
-  Future<void> _launchUrl(String urlString) async{
-    final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url)) {
-      // If it fails (e.g., malformed link), show a snackbar or error
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not launch $urlString')),
-        );
-      }
-    }
-
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Theme.of(context).colorScheme.inversePrimary, title: Text(widget.title)),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-<<<<<<< HEAD
-            Text(scanResult?.url ?? 'You have not scanned a QR Code'),
-            const SizedBox(height: 12),
-            if (scanResult != null) Text(scanResult!.statusMessage),
-            if (scanResult != null && scanResult!.detailsLines.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              ...scanResult!.detailsLines.map(Text.new),
-            ],
-=======
-            // Text(qrCodeValue ?? 'You have not scanned a QR Code'),
-            // const Text("testing...is this thing on?"),
-            if (qrCodeValue != null)
-              ElevatedButton(onPressed: ()=> _launchUrl(qrCodeValue!), 
-              child: Text("open link! $qrCodeValue"))
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+      ),
 
->>>>>>> a4c1df53cab962999de80a18887977ed97068825
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push<SafeBrowsingResult>(
+      floatingActionButton: SizedBox(
+        width: 300,
+        height: 300,
+        child: FloatingActionButton(
+          onPressed: () async {
+
+          
+          final scannedValue = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const QrCodeScanner()),
+            MaterialPageRoute(
+              builder: (_) => const QrCodeScanner(),
+            ),
           );
-          if (!mounted || result == null) return;
-          setState(() {
-            scanResult = result;
-          });
+
+          
+          if (scannedValue == null || !context.mounted) return;
+
+         
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ScanResultScreen(
+                url: scannedValue,
+              ),
+            ),
+          );
         },
-        child: const Icon(Icons.qr_code_scanner),
+          child: const Icon(Icons.qr_code_scanner, size: 300,)
+        ),
+        
+          
       ),
-    );
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+ 
+      );
   }
 }
