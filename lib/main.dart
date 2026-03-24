@@ -29,64 +29,150 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.security_rounded,
-                      size: 96,
-                      color: SafeScanTheme.primary,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0.0, -0.3),
+            radius: 1.5,
+            colors: [
+              SafeScanTheme.surfacePrimary,
+              SafeScanTheme.surfacePrimary,
+              SafeScanTheme.surfaceVariant.withOpacity(0.3),
+            ],
+            stops: const [0.0, 0.6, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(40.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        SafeScanTheme.primary.withOpacity(0.12),
+                        SafeScanTheme.secondary.withOpacity(0.08),
+                      ],
                     ),
-                    const SizedBox(height: 32),
-                    Text(
-                      'SafeScan',
-                      style: Theme.of(context).textTheme.headlineLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 48.0),
-                      child: Text(
-                        'Scan QR codes to check for malicious links and security risks',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                        textAlign: TextAlign.center,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: SafeScanTheme.primary.withOpacity(0.15),
+                        blurRadius: 28,
+                        spreadRadius: 0,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.shield,
+                    size: 80,
+                    color: SafeScanTheme.primary,
+                  ),
                 ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final scannedValue = await Navigator.push<String?>(
-                      context,
-                      MaterialPageRoute(builder: (_) => const QrCodeScanner()),
-                    );
-                    if (scannedValue != null && context.mounted) {
-                      Navigator.push(
+                const SizedBox(height: 32),
+                Text(
+                  'SafeScan',
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: SafeScanTheme.onSurface,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Text(
+                    'Protect against malicious QR codes with instant security analysis',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      height: 1.5,
+                      color: SafeScanTheme.onSurface.withOpacity(0.8),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 48),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final scannedValue = await Navigator.push<String?>(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ScanResultScreen(url: scannedValue),
+                          builder: (_) => const QrCodeScanner(),
                         ),
                       );
-                    }
-                  },
-                  icon: const Icon(Icons.qr_code_scanner_rounded),
-                  label: const Text('Scan QR Code'),
+                      if (scannedValue != null && context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ScanResultScreen(url: scannedValue),
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.qr_code_scanner),
+                    label: const Text('Scan QR Code'),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 2,
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 40),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _TrustChip(Icons.warning_amber_outlined, 'Phishing'),
+                    _TrustChip(Icons.block_outlined, 'Malware'),
+                    _TrustChip(Icons.network_check_outlined, 'Threats'),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TrustChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _TrustChip(this.icon, this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: SafeScanTheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: SafeScanTheme.primary.withOpacity(0.15)),
+          ),
+          child: Icon(icon, size: 20, color: SafeScanTheme.primary),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+        ),
+      ],
     );
   }
 }

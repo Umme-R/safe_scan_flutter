@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:safe_scan_flutter/theme.dart';
 import 'package:safe_scan_flutter/scanner_overlay_painter.dart';
-import 'package:safe_scan_flutter/qr_scanner_overlay.dart';
 
 class QrCodeScanner extends StatefulWidget {
   const QrCodeScanner({super.key});
@@ -12,89 +11,111 @@ class QrCodeScanner extends StatefulWidget {
 }
 
 class _QrCodeScannerState extends State<QrCodeScanner> {
-  final MobileScannerController scannerController = MobileScannerController(
-    autoZoom: true,
-  );
-
+  MobileScannerController? controller;
   bool _isProcessing = false;
   bool _torchOn = false;
 
   @override
+  void initState() {
+    super.initState();
+    controller = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+      autoStart: true,
+    );
+  }
+
+  @override
   void dispose() {
-    scannerController.dispose();
+    controller?.dispose();
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) async {
-    if (_isProcessing) return;
+  Future<void> _onDetect(BarcodeCapture capture) async {
+    if (_isProcessing || controller == null || !mounted) return;
 
-    final barcode = capture.barcodes.isNotEmpty ? capture.barcodes.first : null;
+    final List<Barcode> barcodes = capture.barcodes;
+    final Barcode? barcode = barcodes.isNotEmpty ? barcodes.first : null;
+    final String? code = barcode?.rawValue;
 
-    if (barcode?.rawValue == null) {
-      _isProcessing = false;
-      return;
+    if (code == null || code.isEmpty) return;
+
+    _isProcessing = true;
+    debugPrint('Scanned QR: $code');
+    await controller!.stop();
+
+    if (mounted) {
+      Navigator.of(context).pop(code);
     }
-    final rawValue = barcode!.rawValue!.trim();
-    debugPrint('Scanned: $rawValue');
-
-    await scannerController.stop();
-
-    if (!mounted) return;
-    Navigator.pop(context, rawValue);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (controller == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('QR Scanner'), elevation: 0),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('SafeScan'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          MobileScanner(
-            controller: scannerController,
-            onDetect: _onDetect,
-            overlayBuilder: (context, constraints) {
-              final size = constraints.biggest;
-              final scanSize = Size(size.width * 0.6, size.width * 0.6);
-              return Center(
-                child: CustomPaint(
-                  size: scanSize,
-                  painter: ScannerOverlayPainter(),
-                ),
-              );
-            },
-          ),
-          const QrScannerOverlay(),
-          Positioned(
-            bottom: 120,
-            left: 20,
-            right: 20,
-            child: Center(
-              child: Container(
-                height: 64,
-                width: 64,
-                decoration: BoxDecoration(
-                  color: SafeScanTheme.primary.withOpacity(0.9),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: SafeScanTheme.primary.withOpacity(0.3),
-                      blurRadius: 24,
-                      spreadRadius: 4,
+          MobileScanner(controller: controller!, onDetect: _onDetect),
+          CustomPaint(painter: ScannerOverlayPainter(), size: Size.infinite),
+          // Instructions text ABOVE frame
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 50, 24, 0),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Align QR code within frame',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
-                child: IconButton(
-                  onPressed: () async {
-                    await scannerController.toggleTorch();
-                    if (mounted) {
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+          // Torch button BELOW frame
+          SafeArea(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(75),
+                child: GestureDetector(
+                  onTap: () async {
+                    if (controller != null) {
+                      await controller!.toggleTorch();
                       setState(() {
                         _torchOn = !_torchOn;
                       });
                     }
                   },
-                  icon: Icon(_torchOn ? Icons.flash_on : Icons.flash_off),
-                  color: Colors.white,
-                  iconSize: 28,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      _torchOn ? Icons.flash_on : Icons.flash_off,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
                 ),
               ),
             ),

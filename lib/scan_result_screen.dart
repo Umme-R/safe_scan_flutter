@@ -259,23 +259,26 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                       ),
                       const SizedBox(height: 32),
                     ],
-                    // Primary Action
+                    // Primary Action - FIXED GREEN BUTTON TEXT VISIBILITY
                     SizedBox(
                       width: double.infinity,
                       height: 56,
                       child: ElevatedButton.icon(
                         onPressed: () => _launchUrl(widget.url),
-                        icon: const Icon(Icons.launch_rounded),
+                        icon: const Icon(
+                          Icons.launch_rounded,
+                          color: Colors.white,
+                        ),
                         label: Text(
                           _result!.isSafe ? 'Open Link' : 'Open Anyway',
+                          style: const TextStyle(color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _result!.isSafe
                               ? SafeScanTheme.safe
                               : SafeScanTheme.danger.withOpacity(0.1),
-                          foregroundColor: _result!.isSafe
-                              ? SafeScanTheme.safe
-                              : SafeScanTheme.danger,
+                          foregroundColor: Colors.white,
+                          elevation: _result!.isSafe ? 2 : 1,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

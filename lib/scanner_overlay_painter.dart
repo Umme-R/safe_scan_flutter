@@ -4,58 +4,42 @@ import 'package:safe_scan_flutter/theme.dart';
 class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = SafeScanTheme.primary.withOpacity(0.8)
+    // Dark overlay
+    final overlayPaint = Paint()..color = Colors.black.withOpacity(0.6);
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), overlayPaint);
+
+    // MUCH larger centered scan frame (60-70% screen width)
+    final double frameSize = size.width * 0.35;
+    final frameRect = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2),
+      width: frameSize,
+      height: frameSize,
+    );
+
+    // Transparent cutout
+    final cutoutPaint = Paint()..blendMode = BlendMode.clear;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(frameRect, const Radius.circular(24)),
+      cutoutPaint,
+    );
+
+    // Clean large rounded border (no corners)
+    final borderPaint = Paint()
+      ..color = SafeScanTheme.primary
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
-
-    const cornerLength = 30.0;
-    const radius = 20.0;
-
-    // Top-left
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, cornerLength, cornerLength),
-        const Radius.circular(radius),
-      ),
-      paint,
+      RRect.fromRectAndRadius(frameRect, const Radius.circular(24)),
+      borderPaint,
     );
 
-    // Top-right
+    // Subtle inner glow
+    final glowPaint = Paint()
+      ..color = SafeScanTheme.primary.withOpacity(0.3)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width - cornerLength, 0, cornerLength, cornerLength),
-        const Radius.circular(radius),
-      ),
-      paint,
-    );
-
-    // Bottom-left
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          0,
-          size.height - cornerLength,
-          cornerLength,
-          cornerLength,
-        ),
-        const Radius.circular(radius),
-      ),
-      paint,
-    );
-
-    // Bottom-right
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          size.width - cornerLength,
-          size.height - cornerLength,
-          cornerLength,
-          cornerLength,
-        ),
-        const Radius.circular(radius),
-      ),
-      paint,
+      RRect.fromRectAndRadius(frameRect.deflate(2), const Radius.circular(22)),
+      glowPaint,
     );
   }
 
