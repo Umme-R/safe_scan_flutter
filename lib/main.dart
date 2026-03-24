@@ -4,6 +4,7 @@ import 'package:safe_scan_flutter/theme.dart';
 import 'package:safe_scan_flutter/qr_code_scanner.dart';
 import 'package:safe_scan_flutter/scan_result_screen.dart';
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');

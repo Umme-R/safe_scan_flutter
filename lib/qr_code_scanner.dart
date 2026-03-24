@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:safe_scan_flutter/theme.dart';
 import 'package:safe_scan_flutter/scanner_overlay_painter.dart';
+import 'package:http/http.dart' as http;
 
 class QrCodeScanner extends StatefulWidget {
   const QrCodeScanner({super.key});
@@ -30,6 +31,32 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     super.dispose();
   }
 
+  //this beats url shorteners!
+  Future<String> expandUrl(String url) async{
+    final client = http.Client();
+    try{
+      final request = http.Request("HEAD", Uri.parse(url));
+      request.followRedirects = true;
+      request.maxRedirects = 10;
+      final response = await client.send(request);
+      return response.request?.url.toString() ?? url;
+
+
+    }catch (_) {
+    try {
+      // Fallback to GET if HEAD fails
+      // final proxyUrl = "https://corsproxy.io/?$url";
+      final getResponse = await client.get(Uri.parse(url));
+      return getResponse.request?.url.toString() ?? url;
+    } catch (e) {
+      debugPrint("Expand URL failed: $e");
+      return url;
+    }
+    }
+    finally{
+      client.close();
+    }
+  }
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_isProcessing || controller == null || !mounted) return;
 
@@ -42,9 +69,11 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     _isProcessing = true;
     debugPrint('Scanned QR: $code');
     await controller!.stop();
+    final String expandedUrl = await expandUrl(code);
+
 
     if (mounted) {
-      Navigator.of(context).pop(code);
+      Navigator.of(context).pop(expandedUrl);
     }
   }
 
