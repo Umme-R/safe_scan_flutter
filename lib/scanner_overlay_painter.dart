@@ -5,79 +5,60 @@ class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = SafeScanTheme.primary.withOpacity(0.9)
-      ..strokeWidth = 6
+      ..color = SafeScanTheme.primary.withOpacity(0.8)
+      ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
 
-    const cornerLength = 40.0;
-    const radius = 30.0;
+    const cornerLength = 30.0;
+    const radius = 20.0;
 
     // Top-left
-    canvas.drawPath(
-      Path()
-        ..moveTo(0, radius)
-        ..quadraticBezierTo(0, 0, radius, 0)
-        ..lineTo(cornerLength, 0),
-      paint,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(0, radius)
-        ..lineTo(0, cornerLength),
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, cornerLength, cornerLength),
+        const Radius.circular(radius),
+      ),
       paint,
     );
 
     // Top-right
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width - cornerLength, 0)
-        ..lineTo(size.width - radius, 0)
-        ..quadraticBezierTo(size.width, 0, size.width, radius),
-      paint,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width, radius)
-        ..lineTo(size.width, cornerLength),
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(size.width - cornerLength, 0, cornerLength, cornerLength),
+        const Radius.circular(radius),
+      ),
       paint,
     );
 
     // Bottom-left
-    canvas.drawPath(
-      Path()
-        ..moveTo(0, size.height - cornerLength)
-        ..lineTo(0, size.height - radius)
-        ..quadraticBezierTo(0, size.height, radius, size.height),
-      paint,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(radius, size.height)
-        ..lineTo(cornerLength, size.height),
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          0,
+          size.height - cornerLength,
+          cornerLength,
+          cornerLength,
+        ),
+        const Radius.circular(radius),
+      ),
       paint,
     );
 
     // Bottom-right
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width - cornerLength, size.height)
-        ..lineTo(size.width - radius, size.height)
-        ..quadraticBezierTo(
-          size.width,
-          size.height,
-          size.width,
-          size.height - radius,
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width - cornerLength,
+          size.height - cornerLength,
+          cornerLength,
+          cornerLength,
         ),
-      paint,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(size.width, size.height - radius)
-        ..lineTo(size.width, size.height - cornerLength),
+        const Radius.circular(radius),
+      ),
       paint,
     );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

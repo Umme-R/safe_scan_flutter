@@ -46,18 +46,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Point & Scan QR'),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [SafeScanTheme.primary, SafeScanTheme.primaryVariant],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-      ),
+      appBar: AppBar(title: const Text('QR Scanner'), elevation: 0),
       body: Stack(
         children: [
           MobileScanner(
@@ -66,46 +55,46 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
             overlayBuilder: (context, constraints) {
               final size = constraints.biggest;
               final scanSize = Size(size.width * 0.6, size.width * 0.6);
-              return CustomPaint(
-                size: scanSize,
-                painter: ScannerOverlayPainter(),
+              return Center(
+                child: CustomPaint(
+                  size: scanSize,
+                  painter: ScannerOverlayPainter(),
+                ),
               );
             },
           ),
           const QrScannerOverlay(),
           Positioned(
-            bottom: 100,
+            bottom: 120,
             left: 20,
             right: 20,
             child: Center(
-              child: GestureDetector(
-                onTap: () async {
-                  await scannerController.toggleTorch();
-                  if (mounted) {
-                    setState(() {
-                      _torchOn = !_torchOn;
-                    });
-                  }
-                },
-                child: Container(
-                  height: 70,
-                  width: 70,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: SafeScanTheme.primary.withOpacity(0.5),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    _torchOn ? Icons.flash_on : Icons.flash_off,
-                    color: Colors.white,
-                    size: 30,
-                  ),
+              child: Container(
+                height: 64,
+                width: 64,
+                decoration: BoxDecoration(
+                  color: SafeScanTheme.primary.withOpacity(0.9),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: SafeScanTheme.primary.withOpacity(0.3),
+                      blurRadius: 24,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  onPressed: () async {
+                    await scannerController.toggleTorch();
+                    if (mounted) {
+                      setState(() {
+                        _torchOn = !_torchOn;
+                      });
+                    }
+                  },
+                  icon: Icon(_torchOn ? Icons.flash_on : Icons.flash_off),
+                  color: Colors.white,
+                  iconSize: 28,
                 ),
               ),
             ),

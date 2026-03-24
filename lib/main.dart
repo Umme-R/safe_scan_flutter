@@ -29,70 +29,61 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFF8F8FF), Color(0xFFE6E6FA)],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                const Spacer(flex: 1),
-                Icon(
-                  Icons.shield_rounded,
-                  size: 80,
-                  color: SafeScanTheme.primary,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.security_rounded,
+                      size: 96,
+                      color: SafeScanTheme.primary,
+                    ),
+                    const SizedBox(height: 32),
+                    Text(
+                      'SafeScan',
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                      child: Text(
+                        'Scan QR codes to check for malicious links and security risks',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'SafeScan',
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                  child: Text(
-                    'Protect yourself with instant QR code safety checks',
-                    style: Theme.of(
+              ),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final scannedValue = await Navigator.push<String?>(
                       context,
-                    ).textTheme.bodyLarge?.copyWith(height: 1.4),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const Spacer(flex: 2),
-                SizedBox(
-                  width: double.infinity,
-                  height: 64,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final scannedValue = await Navigator.push<String?>(
+                      MaterialPageRoute(builder: (_) => const QrCodeScanner()),
+                    );
+                    if (scannedValue != null && context.mounted) {
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const QrCodeScanner(),
+                          builder: (_) => ScanResultScreen(url: scannedValue),
                         ),
                       );
-                      if (scannedValue != null && context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ScanResultScreen(url: scannedValue),
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.qr_code_scanner_rounded, size: 32),
-                    label: const Text('Scan QR Code'),
-                    style: ElevatedButton.styleFrom(elevation: 8),
-                  ),
+                    }
+                  },
+                  icon: const Icon(Icons.qr_code_scanner_rounded),
+                  label: const Text('Scan QR Code'),
                 ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),

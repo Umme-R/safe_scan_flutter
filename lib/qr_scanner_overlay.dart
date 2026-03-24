@@ -13,29 +13,27 @@ class QrScannerOverlay extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Align QR code',
+              'Align QR code within frame',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: Colors.white,
+                fontWeight: FontWeight.w600,
                 shadows: [
-                  const Shadow(
-                    offset: Offset(0, 2),
-                    blurRadius: 4,
+                  Shadow(
                     color: Colors.black54,
+                    offset: const Offset(0, 2),
+                    blurRadius: 4,
                   ),
                 ],
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0),
-              child: Text(
-                'Position the QR code inside the frame',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
+            const SizedBox(height: 12),
+            Text(
+              'We\'ll check the destination for safety risks',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Colors.white.withOpacity(0.9),
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
