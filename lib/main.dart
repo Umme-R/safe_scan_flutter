@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:safe_scan_flutter/qr_code_scanner.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:safe_scan_flutter/theme.dart';
+import 'package:safe_scan_flutter/qr_code_scanner.dart';
 import 'package:safe_scan_flutter/scan_result_screen.dart';
 
-
-// void main() {
-//   runApp(const MyApp());
-// }
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
@@ -16,97 +13,89 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter QR Code Scanner Demo',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
-      home: MyHomePage(title: "QR Code Scanner"),
+      title: 'SafeScan',
+      theme: SafeScanTheme.theme,
+      home: const MyHomePage(),
     );
   }
 }
 
-class Home extends StatelessWidget {
-  const Home({super.key});
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("ScanSafe Home Page"),
-        centerTitle: true,
-      ),
-      floatingActionButton: SizedBox(
-        width: 300,
-        height: 300,
-        child: FloatingActionButton(
-          onPressed: (){},
-          child: const Icon(Icons.qr_code_scanner, size: 300,)
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF8F8FF), Color(0xFFE6E6FA)],
+          ),
         ),
-        
-          
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                const Spacer(flex: 1),
+                Icon(
+                  Icons.shield_rounded,
+                  size: 80,
+                  color: SafeScanTheme.primary,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'SafeScan',
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                  child: Text(
+                    'Protect yourself with instant QR code safety checks',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(height: 1.4),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Spacer(flex: 2),
+                SizedBox(
+                  width: double.infinity,
+                  height: 64,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final scannedValue = await Navigator.push<String?>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const QrCodeScanner(),
+                        ),
+                      );
+                      if (scannedValue != null && context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ScanResultScreen(url: scannedValue),
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.qr_code_scanner_rounded, size: 32),
+                    label: const Text('Scan QR Code'),
+                    style: ElevatedButton.styleFrom(elevation: 8),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-
     );
-  
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  final String title;
-
-  const MyHomePage({super.key, required this.title});
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-
-      floatingActionButton: SizedBox(
-        width: 300,
-        height: 300,
-        child: FloatingActionButton(
-          onPressed: () async {
-
-          
-          final scannedValue = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const QrCodeScanner(),
-            ),
-          );
-
-          
-          if (scannedValue == null || !context.mounted) return;
-
-         
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ScanResultScreen(
-                url: scannedValue,
-              ),
-            ),
-          );
-        },
-          child: const Icon(Icons.qr_code_scanner, size: 300,)
-        ),
-        
-          
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
- 
-      );
   }
 }

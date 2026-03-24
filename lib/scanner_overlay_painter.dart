@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:safe_scan_flutter/theme.dart';
 
 class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = Colors.white
-          ..strokeWidth = 6
-          ..style = PaintingStyle.stroke;
+    final paint = Paint()
+      ..color = SafeScanTheme.primary.withOpacity(0.9)
+      ..strokeWidth = 6
+      ..style = PaintingStyle.stroke;
 
     const cornerLength = 40.0;
     const radius = 30.0;
@@ -62,7 +62,12 @@ class ScannerOverlayPainter extends CustomPainter {
       Path()
         ..moveTo(size.width - cornerLength, size.height)
         ..lineTo(size.width - radius, size.height)
-        ..quadraticBezierTo(size.width, size.height, size.width, size.height - radius),
+        ..quadraticBezierTo(
+          size.width,
+          size.height,
+          size.width,
+          size.height - radius,
+        ),
       paint,
     );
     canvas.drawPath(

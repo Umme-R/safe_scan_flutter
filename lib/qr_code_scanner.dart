@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:safe_scan_flutter/theme.dart';
 import 'package:safe_scan_flutter/scanner_overlay_painter.dart';
-// import 'package:safe_scan_flutter/safe_browsing_service.dart';
+import 'package:safe_scan_flutter/qr_scanner_overlay.dart';
 
 class QrCodeScanner extends StatefulWidget {
   const QrCodeScanner({super.key});
@@ -11,10 +12,9 @@ class QrCodeScanner extends StatefulWidget {
 }
 
 class _QrCodeScannerState extends State<QrCodeScanner> {
-  final MobileScannerController scannerController = MobileScannerController
-  (autoZoom: true);
-  // final SafeBrowsingService _safeBrowsingService = SafeBrowsingService();
-
+  final MobileScannerController scannerController = MobileScannerController(
+    autoZoom: true,
+  );
 
   bool _isProcessing = false;
   bool _torchOn = false;
@@ -28,8 +28,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
   void _onDetect(BarcodeCapture capture) async {
     if (_isProcessing) return;
 
-    final barcode =
-        capture.barcodes.isNotEmpty ? capture.barcodes.first : null;
+    final barcode = capture.barcodes.isNotEmpty ? capture.barcodes.first : null;
 
     if (barcode?.rawValue == null) {
       _isProcessing = false;
@@ -40,15 +39,25 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
 
     await scannerController.stop();
 
-
     if (!mounted) return;
     Navigator.pop(context, rawValue);
-    
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("QR Scanner")),
+      appBar: AppBar(
+        title: const Text('Point & Scan QR'),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [SafeScanTheme.primary, SafeScanTheme.primaryVariant],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           MobileScanner(
@@ -56,27 +65,47 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
             onDetect: _onDetect,
             overlayBuilder: (context, constraints) {
               final size = constraints.biggest;
-              final scanSize = Size(size.width * 0.5, size.width * 0.5);
-              return Center(child: CustomPaint(size: scanSize, painter: ScannerOverlayPainter()));
+              final scanSize = Size(size.width * 0.6, size.width * 0.6);
+              return CustomPaint(
+                size: scanSize,
+                painter: ScannerOverlayPainter(),
+              );
             },
           ),
+          const QrScannerOverlay(),
           Positioned(
-            bottom: 30,
+            bottom: 100,
             left: 20,
-            right: 50,
+            right: 20,
             child: Center(
-              child: InkWell(
+              child: GestureDetector(
                 onTap: () async {
                   await scannerController.toggleTorch();
-                  setState(() {
-                    _torchOn = !_torchOn;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      _torchOn = !_torchOn;
+                    });
+                  }
                 },
                 child: Container(
-                  height: 60,
-                  width: 60,
-                  decoration: BoxDecoration(color: Colors.black.withAlpha(50), shape: BoxShape.circle),
-                  child: Icon(_torchOn ? Icons.flash_on : Icons.flash_off, color: Colors.white),
+                  height: 70,
+                  width: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: SafeScanTheme.primary.withOpacity(0.5),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    _torchOn ? Icons.flash_on : Icons.flash_off,
+                    color: Colors.white,
+                    size: 30,
+                  ),
                 ),
               ),
             ),
