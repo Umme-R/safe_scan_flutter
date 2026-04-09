@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:safe_scan_flutter/theme.dart';
 import 'package:safe_scan_flutter/scanner_overlay_painter.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 class QrCodeScanner extends StatefulWidget {
   const QrCodeScanner({super.key});
@@ -35,18 +36,26 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
   Future<String> expandUrl(String url) async{
     final client = http.Client();
     try{
-      final request = http.Request("HEAD", Uri.parse(url));
+      debugPrint("trying to expand using get");
+      // final proxyurl = "https://lnky.api.stanleymasinde.com?url=$url";
+      final request = http.Request("GET", Uri.parse("http://localhost:3000/expand?url=${Uri.encodeComponent(url)}",));
       request.followRedirects = true;
       request.maxRedirects = 10;
+      request.headers['User-Agent'] =
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
       final response = await client.send(request);
-      return response.request?.url.toString() ?? url;
+      final body = await response.stream.bytesToString();
+      final data = jsonDecode(body);
+      // return response.request?.url.toString() ?? url;
+      return data["expandedUrl"];
 
 
     }catch (_) {
     try {
+      debugPrint('head failed, using get now.');
       // Fallback to GET if HEAD fails
       // final proxyUrl = "https://corsproxy.io/?$url";
-      final getResponse = await client.get(Uri.parse(url));
+      final getResponse = await client.get(Uri.parse("http://localhost:3000/expand?url=${Uri.encodeComponent(url)}",));
       return getResponse.request?.url.toString() ?? url;
     } catch (e) {
       debugPrint("Expand URL failed: $e");
@@ -70,6 +79,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> {
     debugPrint('Scanned QR: $code');
     await controller!.stop();
     final String expandedUrl = await expandUrl(code);
+    debugPrint(expandedUrl);
 
 
     if (mounted) {
