@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_scan_flutter/theme.dart';
 import 'package:safe_scan_flutter/safe_browsing_service.dart';
+import 'package:safe_scan_flutter/history_store.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ScanResultScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
 
   SafeBrowsingResult? _result;
   bool _loading = true;
+  bool _historyAdded = false;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
           _loading = false;
         });
       }
+      _addToHistory(_result);
       return;
     }
 
@@ -53,6 +56,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
           _loading = false;
         });
       }
+      _addToHistory(result);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -64,7 +68,16 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
           _loading = false;
         });
       }
+      _addToHistory(_result);
     }
+  }
+
+  void _addToHistory(SafeBrowsingResult? result) {
+    if (result == null || _historyAdded) return;
+    _historyAdded = true;
+    HistoryStore.instance.addEntry(
+      HistoryEntry.fromUrl(url: result.url, isSafe: result.isSafe),
+    );
   }
 
   Future<void> _launchUrl(String urlString) async {

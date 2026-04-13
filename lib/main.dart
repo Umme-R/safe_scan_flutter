@@ -3,11 +3,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:safe_scan_flutter/theme.dart';
 import 'package:safe_scan_flutter/qr_code_scanner.dart';
 import 'package:safe_scan_flutter/scan_result_screen.dart';
+import 'package:safe_scan_flutter/history_screen.dart';
+import 'package:safe_scan_flutter/history_store.dart';
 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+  await HistoryStore.instance.init();
   runApp(const MyApp());
 }
 
@@ -30,6 +33,25 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: SafeScanTheme.primary,
+        actions: [
+          IconButton(
+            tooltip: 'History',
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HistoryScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: RadialGradient(
