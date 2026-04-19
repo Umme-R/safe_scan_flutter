@@ -18,7 +18,7 @@ class HistoryScreen extends StatelessWidget {
     final store = HistoryStore.instance;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFF060E1E),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -27,14 +27,17 @@ class HistoryScreen extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.white.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8)],
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
-            child: Icon(Icons.arrow_back_rounded, color: SafeScanTheme.primary, size: 20),
+            child: const Icon(Icons.arrow_back_rounded, color: Colors.white70, size: 20),
           ),
         ),
-        title: const Text('Scan History', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+        title: const Text(
+          'Scan History',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -52,15 +55,16 @@ class HistoryScreen extends StatelessWidget {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: SafeScanTheme.primary.withOpacity(0.08),
+                        color: Colors.white.withOpacity(0.06),
                         shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withOpacity(0.1)),
                       ),
-                      child: Icon(Icons.history_rounded, size: 36, color: SafeScanTheme.primary.withOpacity(0.5)),
+                      child: const Icon(Icons.history_rounded, size: 36, color: Colors.white24),
                     ),
                     const SizedBox(height: 20),
-                    const Text('No scans yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+                    const Text('No scans yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white70)),
                     const SizedBox(height: 6),
-                    Text('Your scan history will appear here', style: TextStyle(fontSize: 13, color: const Color(0xFF334155).withOpacity(0.5))),
+                    const Text('Your scan history will appear here', style: TextStyle(fontSize: 13, color: Colors.white30)),
                   ],
                 ),
               );
@@ -75,29 +79,30 @@ class HistoryScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final entry = entries[index];
                       final isSafe = entry.isSafe;
+                      final statusColor = isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Colors.white.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(18),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2)),
-                            ],
+                            border: Border.all(color: Colors.white.withOpacity(0.08)),
                           ),
                           child: Row(
                             children: [
                               Container(
-                                width: 42,
-                                height: 42,
+                                width: 44,
+                                height: 44,
                                 decoration: BoxDecoration(
-                                  color: (isSafe ? SafeScanTheme.safe : SafeScanTheme.danger).withOpacity(0.1),
+                                  color: statusColor.withOpacity(0.12),
                                   borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: statusColor.withOpacity(0.3)),
                                 ),
                                 child: Icon(
                                   isSafe ? Icons.verified_rounded : Icons.dangerous_rounded,
-                                  color: isSafe ? SafeScanTheme.safe : SafeScanTheme.danger,
+                                  color: statusColor,
                                   size: 22,
                                 ),
                               ),
@@ -108,31 +113,28 @@ class HistoryScreen extends StatelessWidget {
                                   children: [
                                     Text(
                                       entry.displayName,
-                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 3),
                                     Text(
                                       entry.url,
-                                      style: TextStyle(fontSize: 12, color: const Color(0xFF334155).withOpacity(0.5)),
+                                      style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.35)),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(height: 5),
+                                    const SizedBox(height: 6),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: (isSafe ? SafeScanTheme.safe : SafeScanTheme.danger).withOpacity(0.1),
+                                        color: statusColor.withOpacity(0.12),
                                         borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: statusColor.withOpacity(0.25)),
                                       ),
                                       child: Text(
                                         isSafe ? 'Safe' : 'Dangerous',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: isSafe ? SafeScanTheme.safe : SafeScanTheme.danger,
-                                        ),
+                                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
                                       ),
                                     ),
                                   ],
@@ -142,12 +144,12 @@ class HistoryScreen extends StatelessWidget {
                                 children: [
                                   IconButton(
                                     onPressed: () => _copyUrl(context, entry.url),
-                                    icon: Icon(Icons.copy_rounded, size: 18, color: SafeScanTheme.primary),
+                                    icon: const Icon(Icons.copy_rounded, size: 18, color: Color(0xFF60A5FA)),
                                     tooltip: 'Copy link',
                                   ),
                                   IconButton(
                                     onPressed: () => store.removeAt(index),
-                                    icon: Icon(Icons.delete_outline_rounded, size: 18, color: SafeScanTheme.danger),
+                                    icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
                                     tooltip: 'Delete',
                                   ),
                                 ],
@@ -167,8 +169,8 @@ class HistoryScreen extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: store.clear,
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: SafeScanTheme.danger,
-                        side: BorderSide(color: SafeScanTheme.danger.withOpacity(0.4)),
+                        foregroundColor: const Color(0xFFEF4444),
+                        side: BorderSide(color: const Color(0xFFEF4444).withOpacity(0.3)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                       child: const Text('Clear All History', style: TextStyle(fontWeight: FontWeight.w600)),
