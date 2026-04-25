@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_scan_flutter/history_store.dart';
-import 'package:safe_scan_flutter/theme.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});

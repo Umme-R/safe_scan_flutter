@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:safe_scan_flutter/theme.dart';
 import 'package:safe_scan_flutter/safe_browsing_service.dart';
 import 'package:safe_scan_flutter/history_store.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:safe_scan_flutter/url_heuristics.dart';
+
 
 class ScanResultScreen extends StatefulWidget {
   final String url;
@@ -38,9 +39,41 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
       return;
     }
     try {
-      final result = await _service.checkUrl(widget.url);
-      if (mounted) setState(() { _result = result; _loading = false; });
-      _addToHistory(result);
+      // final result = await _service.checkUrl(widget.url);
+      final safeBrowsingResult = await _service.checkUrl(widget.url);
+
+      final heuristicResult =
+          HeuristicsCheck.calculateRiskScore(
+            widget.url,
+            !safeBrowsingResult.isSafe,
+          );
+
+      // if (mounted) setState(() { _result = result; _loading = false; });
+      final score = heuristicResult['score'];
+      final verdict = heuristicResult['verdict'];
+      final reason = heuristicResult['reason'];
+
+      final finalResult = SafeBrowsingResult(
+        url: widget.url,
+        isSafe: score < 50,
+        error: null,
+        threats: [],
+        analysisDetails: [
+          'Risk Score: $score / 100',
+          'Verdict: $verdict',
+          reason,
+        ],
+      );
+
+      if (mounted) {
+        setState(() {
+          _result = finalResult;
+          _loading = false;
+        });
+      }
+
+// _addToHistory(finalResult);
+      _addToHistory(finalResult);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -263,7 +296,9 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                           ),
                         ),
 
-                        if (_result!.detailsLines.isNotEmpty) ...[
+                        // if (_result!.detailsLines.isNotEmpty) ...[
+                        if (_result!.analysisDetails.isNotEmpty) ...[
+
                           const SizedBox(height: 16),
                           Container(
                             padding: const EdgeInsets.all(20),
@@ -293,7 +328,9 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 14),
-                                ..._result!.detailsLines.map(
+                                ..._result!.analysisDetails.map(
+                                // ..._result!.detailsLines.map(
+
                                   (line) => Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 5),
                                     child: Row(

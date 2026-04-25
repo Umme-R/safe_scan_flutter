@@ -39,12 +39,17 @@ class SafeBrowsingResult {
   final bool isSafe;
   final List<SafeBrowsingMatch> matches;
   final String? error;
+  final List<String> threats;
+  final List<String> analysisDetails;
+
 
   const SafeBrowsingResult({
     required this.url,
     required this.isSafe,
     this.matches = const [],
     this.error,
+    this.threats = const [],
+    this.analysisDetails = const [],
   });
 
   String get statusMessage {
