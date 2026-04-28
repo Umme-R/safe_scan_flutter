@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_scan_flutter/safe_browsing_service.dart';
 import 'package:safe_scan_flutter/history_store.dart';
+import 'package:safe_scan_flutter/qr_code_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:safe_scan_flutter/url_heuristics.dart';
 
@@ -100,6 +101,22 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
   Future<void> _copyUrl() async {
     await Clipboard.setData(ClipboardData(text: widget.url));
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('URL copied')));
+  }
+
+  Future<void> _scanAnother() async {
+    final scannedValue = await Navigator.push<String?>(
+      context,
+      MaterialPageRoute(builder: (_) => const QrCodeScanner()),
+    );
+
+    if (scannedValue != null && mounted) {
+      await Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ScanResultScreen(url: scannedValue),
+        ),
+      );
+    }
   }
 
   Color _riskColor(int score) {
@@ -451,7 +468,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                         SizedBox(
                           height: 54,
                           child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: _scanAnother,
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white70,
                               side: BorderSide(color: Colors.white.withOpacity(0.15)),

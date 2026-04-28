@@ -1,14 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:safe_scan_flutter/history_store.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
-  Future<void> _copyUrl(BuildContext context, String url) async {
-    await Clipboard.setData(ClipboardData(text: url));
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link copied')));
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _query = _searchController.text.trim().toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openUrl(BuildContext context, String urlString) async {
+    final url = Uri.tryParse(urlString);
+    if (url == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid URL')),
+        );
+      }
+      return;
+    }
+
+    if (!await launchUrl(url)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch URL')),
+        );
+      }
     }
   }
 
@@ -43,9 +80,14 @@ class HistoryScreen extends StatelessWidget {
         child: AnimatedBuilder(
           animation: store,
           builder: (context, _) {
-            final entries = store.entries;
+            final filteredEntries = store.entries.asMap().entries.where((entry) {
+              if (_query.isEmpty) return true;
+              final item = entry.value;
+              return item.displayName.toLowerCase().contains(_query) ||
+                  item.url.toLowerCase().contains(_query);
+            }).toList(growable: false);
 
-            if (entries.isEmpty) {
+            if (store.entries.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -71,94 +113,127 @@ class HistoryScreen extends StatelessWidget {
 
             return Column(
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: TextField(
+                      controller: _searchController,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: InputDecoration(
+                        icon: const Icon(Icons.search_rounded, color: Color(0xFF60A5FA), size: 20),
+                        hintText: 'Search history',
+                        hintStyle: TextStyle(
+                          color: Colors.white.withOpacity(0.35),
+                          fontSize: 14,
+                        ),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                    itemCount: entries.length,
-                    itemBuilder: (context, index) {
-                      final entry = entries[index];
-                      final isSafe = entry.isSafe;
-                      final statusColor = isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444);
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: Colors.white.withOpacity(0.08)),
+                  child: filteredEntries.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No matching scans found',
+                            style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.45)),
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                          itemCount: filteredEntries.length,
+                          itemBuilder: (context, index) {
+                            final indexedEntry = filteredEntries[index];
+                            final storeIndex = indexedEntry.key;
+                            final entry = indexedEntry.value;
+                            final isSafe = entry.isSafe;
+                            final statusColor = isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: statusColor.withOpacity(0.3)),
+                                  color: Colors.white.withOpacity(0.05),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: Colors.white.withOpacity(0.08)),
                                 ),
-                                child: Icon(
-                                  isSafe ? Icons.verified_rounded : Icons.dangerous_rounded,
-                                  color: statusColor,
-                                  size: 22,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
                                   children: [
-                                    Text(
-                                      entry.displayName,
-                                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      entry.url,
-                                      style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.35)),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 6),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      width: 44,
+                                      height: 44,
                                       decoration: BoxDecoration(
                                         color: statusColor.withOpacity(0.12),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: statusColor.withOpacity(0.25)),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: statusColor.withOpacity(0.3)),
                                       ),
-                                      child: Text(
-                                        isSafe ? 'Safe' : 'Dangerous',
-                                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
+                                      child: Icon(
+                                        isSafe ? Icons.verified_rounded : Icons.dangerous_rounded,
+                                        color: statusColor,
+                                        size: 22,
                                       ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            entry.displayName,
+                                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            entry.url,
+                                            style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.35)),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withOpacity(0.12),
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(color: statusColor.withOpacity(0.25)),
+                                            ),
+                                            child: Text(
+                                              isSafe ? 'Safe' : 'Dangerous',
+                                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: statusColor),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      children: [
+                                        IconButton(
+                                          onPressed: () => _openUrl(context, entry.url),
+                                          icon: const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFF60A5FA)),
+                                          tooltip: 'Open link',
+                                        ),
+                                        IconButton(
+                                          onPressed: () => store.removeAt(storeIndex),
+                                          icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
+                                          tooltip: 'Delete',
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                              Column(
-                                children: [
-                                  IconButton(
-                                    onPressed: () => _copyUrl(context, entry.url),
-                                    icon: const Icon(Icons.copy_rounded, size: 18, color: Color(0xFF60A5FA)),
-                                    tooltip: 'Copy link',
-                                  ),
-                                  IconButton(
-                                    onPressed: () => store.removeAt(index),
-                                    icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
-                                    tooltip: 'Delete',
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
