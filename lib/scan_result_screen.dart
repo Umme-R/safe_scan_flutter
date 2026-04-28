@@ -50,17 +50,16 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
 
       // if (mounted) setState(() { _result = result; _loading = false; });
       final score = heuristicResult['score'];
-      final verdict = heuristicResult['verdict'];
       final reason = heuristicResult['reason'];
 
       final finalResult = SafeBrowsingResult(
         url: widget.url,
         isSafe: score < 50,
+        riskScore: score,
         error: null,
         threats: [],
         analysisDetails: [
           'Risk Score: $score / 100',
-          'Verdict: $verdict',
           reason,
         ],
       );
@@ -103,8 +102,29 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('URL copied')));
   }
 
+  Color _riskColor(int score) {
+    if (score <= 33) {
+      return const Color(0xFF10B981);
+    }
+    if (score <= 67) {
+      return const Color(0xFFFACC15);
+    }
+    return const Color(0xFFEF4444);
+  }
+
+  String _riskLabel(int score) {
+    if (score <= 33) {
+      return 'Low Risk';
+    }
+    if (score <= 67) {
+      return 'Medium Risk';
+    }
+    return 'High Risk';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final result = _result;
     return Scaffold(
       backgroundColor: const Color(0xFF060E1E),
       appBar: AppBar(
@@ -156,7 +176,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                 ],
               ),
             )
-          : _result == null
+          : result == null
               ? const Center(child: Text('No results available', style: TextStyle(color: Colors.white54)))
               : SafeArea(
                   child: SingleChildScrollView(
@@ -164,71 +184,97 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Status hero card
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: (_result!.isSafe
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFFEF4444)).withOpacity(0.3),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (_result!.isSafe
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFFEF4444)).withOpacity(0.1),
-                                blurRadius: 32,
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 72,
-                                height: 72,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: (_result!.isSafe
-                                      ? const Color(0xFF10B981)
-                                      : const Color(0xFFEF4444)).withOpacity(0.15),
-                                  border: Border.all(
-                                    color: (_result!.isSafe
-                                        ? const Color(0xFF10B981)
-                                        : const Color(0xFFEF4444)).withOpacity(0.4),
+                        Builder(
+                          builder: (context) {
+                            final score = result.riskScore.clamp(0, 100);
+                            final riskColor = _riskColor(score);
+                            return Container(
+                              padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(color: riskColor.withOpacity(0.3)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: riskColor.withOpacity(0.14),
+                                    blurRadius: 32,
                                   ),
-                                ),
-                                child: Icon(
-                                  _result!.isSafe ? Icons.verified_rounded : Icons.dangerous_rounded,
-                                  size: 36,
-                                  color: _result!.isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                                ),
+                                ],
                               ),
-                              const SizedBox(height: 20),
-                              Text(
-                                _result!.isSafe ? 'Safe to Open' : 'Dangerous',
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w800,
-                                  color: _result!.isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                                  letterSpacing: -0.5,
-                                ),
+                              child: Column(
+                                children: [
+                                  TweenAnimationBuilder<double>(
+                                    tween: Tween<double>(begin: 0, end: score / 100),
+                                    duration: const Duration(milliseconds: 1400),
+                                    curve: Curves.easeOutCubic,
+                                    builder: (context, value, _) {
+                                      return SizedBox(
+                                        width: 112,
+                                        height: 112,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            SizedBox(
+                                              width: 112,
+                                              height: 112,
+                                              child: CircularProgressIndicator(
+                                                value: value,
+                                                strokeWidth: 9,
+                                                backgroundColor: Colors.white.withOpacity(0.08),
+                                                valueColor: AlwaysStoppedAnimation<Color>(riskColor),
+                                              ),
+                                            ),
+                                            Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  '${(value * 100).round()}',
+                                                  style: TextStyle(
+                                                    fontSize: 30,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: riskColor,
+                                                    letterSpacing: -0.8,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Risk',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white.withOpacity(0.55),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Text(
+                                    _riskLabel(score),
+                                    style: TextStyle(
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w800,
+                                      color: riskColor,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    result.statusMessage,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white.withOpacity(0.55),
+                                      height: 1.6,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 10),
-                              Text(
-                                _result!.statusMessage,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white.withOpacity(0.55),
-                                  height: 1.6,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 16),
@@ -297,7 +343,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                         ),
 
                         // if (_result!.detailsLines.isNotEmpty) ...[
-                        if (_result!.analysisDetails.isNotEmpty) ...[
+                        if (result.analysisDetails.isNotEmpty) ...[
 
                           const SizedBox(height: 16),
                           Container(
@@ -328,7 +374,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 14),
-                                ..._result!.analysisDetails.map(
+                                ...result.analysisDetails.map(
                                 // ..._result!.detailsLines.map(
 
                                   (line) => Padding(
@@ -368,7 +414,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: (_result!.isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withOpacity(0.3),
+                                color: _riskColor(result.riskScore).withOpacity(0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 6),
                               ),
@@ -379,7 +425,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                             child: ElevatedButton(
                               onPressed: () => _launchUrl(widget.url),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _result!.isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                                backgroundColor: result.isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444),
                                 foregroundColor: Colors.white,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -390,7 +436,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                                   const Icon(Icons.launch_rounded, size: 20),
                                   const SizedBox(width: 8),
                                   Text(
-                                    _result!.isSafe ? 'Open Link' : 'Open Anyway',
+                                    result.isSafe ? 'Open Link' : 'Open Anyway',
                                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                                   ),
                                 ],

@@ -37,6 +37,7 @@ class SafeBrowsingMatch {
 class SafeBrowsingResult {
   final String url;
   final bool isSafe;
+  final int riskScore;
   final List<SafeBrowsingMatch> matches;
   final String? error;
   final List<String> threats;
@@ -46,6 +47,7 @@ class SafeBrowsingResult {
   const SafeBrowsingResult({
     required this.url,
     required this.isSafe,
+    this.riskScore = 0,
     this.matches = const [],
     this.error,
     this.threats = const [],
@@ -83,7 +85,7 @@ class SafeBrowsingService {
       return SafeBrowsingResult(
         url: url,
         isSafe: false,
-        error: 'Missing API key. Set API_KEY in .env.',
+        error: 'Missing API key. Set API_KEY in assets/config/app.env.',
       );
     }
 

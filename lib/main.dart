@@ -9,7 +9,11 @@ import 'dart:math';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+  try {
+    await dotenv.load(fileName: 'assets/config/app.env');
+  } catch (error) {
+    debugPrint('Skipping env load: $error');
+  }
   await HistoryStore.instance.init();
   runApp(const MyApp());
 }
