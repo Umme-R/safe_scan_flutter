@@ -120,20 +120,20 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
   }
 
   Color _riskColor(int score) {
-    if (score <= 33) {
+    if (score <= 30) {
       return const Color(0xFF10B981);
     }
-    if (score <= 67) {
+    if (score <= 70) {
       return const Color(0xFFFACC15);
     }
     return const Color(0xFFEF4444);
   }
 
   String _riskLabel(int score) {
-    if (score <= 33) {
+    if (score <= 30) {
       return 'Low Risk';
     }
-    if (score <= 67) {
+    if (score <= 70) {
       return 'Medium Risk';
     }
     return 'High Risk';
@@ -287,6 +287,40 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                                       height: 1.6,
                                     ),
                                     textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  TweenAnimationBuilder<double>(
+                                    tween: Tween<double>(begin: 0, end: score / 100),
+                                    duration: const Duration(milliseconds: 1400),
+                                    curve: Curves.easeOutCubic,
+                                    builder: (context, value, _) {
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: LinearProgressIndicator(
+                                              value: value,
+                                              minHeight: 10,
+                                              backgroundColor: Colors.white.withOpacity(0.1),
+                                              valueColor: AlwaysStoppedAnimation<Color>(riskColor),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text('0', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.3))),
+                                              Text(
+                                                '${(value * 100).round()} / 100',
+                                                style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.5)),
+                                              ),
+                                              Text('100', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.3))),
+                                            ],
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
