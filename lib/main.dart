@@ -6,6 +6,8 @@ import 'package:safe_scan_flutter/scan_result_screen.dart';
 import 'package:safe_scan_flutter/history_screen.dart';
 import 'package:safe_scan_flutter/history_store.dart';
 import 'package:safe_scan_flutter/stats_screen.dart';
+import 'package:safe_scan_flutter/onboarding_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
 Future<void> main() async {
@@ -16,11 +18,14 @@ Future<void> main() async {
     debugPrint('Skipping env load: $error');
   }
   await HistoryStore.instance.init();
-  runApp(const MyApp());
+  final prefs = await SharedPreferences.getInstance();
+  final showOnboarding = !(prefs.getBool('has_seen_onboarding') ?? false);
+  runApp(MyApp(showOnboarding: showOnboarding));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final bool showOnboarding;
+  const MyApp({super.key, this.showOnboarding = false});
   static _MyAppState? of(BuildContext context) =>
       context.findAncestorStateOfType<_MyAppState>();
 
@@ -30,7 +35,16 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool isDark = true;
+  late bool _showOnboarding;
+
+  @override
+  void initState() {
+    super.initState();
+    _showOnboarding = widget.showOnboarding;
+  }
+
   void toggleTheme() => setState(() => isDark = !isDark);
+  void _finishOnboarding() => setState(() => _showOnboarding = false);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +52,9 @@ class _MyAppState extends State<MyApp> {
       title: 'SafeScan',
       theme: SafeScanTheme.theme,
       debugShowCheckedModeBanner: false,
-      home: MyHomePage(isDark: isDark),
+      home: _showOnboarding
+          ? OnboardingScreen(onComplete: _finishOnboarding)
+          : MyHomePage(isDark: isDark),
     );
   }
 }
