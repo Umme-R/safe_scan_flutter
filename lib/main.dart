@@ -5,6 +5,7 @@ import 'package:safe_scan_flutter/qr_code_scanner.dart';
 import 'package:safe_scan_flutter/scan_result_screen.dart';
 import 'package:safe_scan_flutter/history_screen.dart';
 import 'package:safe_scan_flutter/history_store.dart';
+import 'package:safe_scan_flutter/stats_screen.dart';
 import 'dart:math';
 
 Future<void> main() async {
@@ -361,6 +362,32 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                         : Colors.black.withOpacity(0.08)),
                               ),
                               child: Icon(Icons.history_rounded,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : const Color(0xFF334155),
+                                  size: 20),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const StatsScreen()),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.08)
+                                    : Colors.black.withOpacity(0.06),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withOpacity(0.1)
+                                        : Colors.black.withOpacity(0.08)),
+                              ),
+                              child: Icon(Icons.bar_chart_rounded,
                                   color: isDark
                                       ? Colors.white70
                                       : const Color(0xFF334155),
