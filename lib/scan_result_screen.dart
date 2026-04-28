@@ -139,6 +139,114 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
     return 'High Risk';
   }
 
+  Widget _breakdownRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 72,
+          child: Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF93C5FD),
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.75),
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget? _buildUrlBreakdown(String urlString) {
+    final uri = Uri.tryParse(urlString);
+    if (uri == null) return null;
+
+    final sections = <(String, String)>[];
+
+    if (uri.scheme.isNotEmpty) {
+      sections.add(('Protocol', uri.scheme));
+    }
+
+    final port = uri.port;
+    final host = (port > 0 && port != 80 && port != 443)
+        ? '${uri.host}:$port'
+        : uri.host;
+    if (host.isNotEmpty) {
+      sections.add(('Domain', host));
+    }
+
+    if (uri.path.isNotEmpty && uri.path != '/') {
+      sections.add(('Path', uri.path));
+    }
+
+    if (uri.queryParameters.isNotEmpty) {
+      final params = uri.queryParameters.entries
+          .map((e) => '${e.key}=${e.value}')
+          .join('\n');
+      sections.add(('Params', params));
+    }
+
+    if (sections.isEmpty) return null;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E3A8A).withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.account_tree_rounded, color: Color(0xFF93C5FD), size: 18),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'URL Breakdown',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...sections.asMap().entries.map((entry) {
+            final i = entry.key;
+            final (label, value) = entry.value;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (i > 0)
+                  Divider(color: Colors.white.withOpacity(0.06), height: 20),
+                _breakdownRow(label, value),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final result = _result;
@@ -391,6 +499,17 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                               ),
                             ],
                           ),
+                        ),
+
+                        Builder(
+                          builder: (context) {
+                            final breakdown = _buildUrlBreakdown(widget.url);
+                            if (breakdown == null) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: breakdown,
+                            );
+                          },
                         ),
 
                         // if (_result!.detailsLines.isNotEmpty) ...[
