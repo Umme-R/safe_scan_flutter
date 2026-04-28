@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:safe_scan_flutter/safe_browsing_service.dart';
@@ -593,7 +594,18 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                           child: SizedBox(
                             height: 54,
                             child: ElevatedButton(
-                              onPressed: () => _launchUrl(widget.url),
+                              onPressed: () {
+                                if (result.isSafe) {
+                                  _launchUrl(widget.url);
+                                } else {
+                                  showDialog<void>(
+                                    context: context,
+                                    builder: (_) => _DangerousUrlDialog(
+                                      onConfirm: () => _launchUrl(widget.url),
+                                    ),
+                                  );
+                                }
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: result.isSafe ? const Color(0xFF10B981) : const Color(0xFFEF4444),
                                 foregroundColor: Colors.white,
@@ -641,6 +653,151 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                     ),
                   ),
                 ),
+    );
+  }
+}
+
+class _DangerousUrlDialog extends StatefulWidget {
+  final VoidCallback onConfirm;
+  const _DangerousUrlDialog({required this.onConfirm});
+
+  @override
+  State<_DangerousUrlDialog> createState() => _DangerousUrlDialogState();
+}
+
+class _DangerousUrlDialogState extends State<_DangerousUrlDialog> {
+  int _countdown = 3;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_countdown <= 1) {
+        timer.cancel();
+        setState(() => _countdown = 0);
+      } else {
+        setState(() => _countdown--);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canOpen = _countdown == 0;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0D1B2E),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFEF4444).withOpacity(0.08),
+              blurRadius: 40,
+              spreadRadius: 4,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withOpacity(0.12),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.35), width: 1.5),
+              ),
+              child: const Icon(Icons.dangerous_rounded, color: Color(0xFFEF4444), size: 38),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Dangerous URL Detected',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: -0.3,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'This site may steal your personal data, passwords, or install malware on your device. Proceed only if you are absolutely certain it is safe.',
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.6,
+                color: Colors.white.withOpacity(0.6),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text(
+                      'Go Back',
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: canOpen
+                        ? () {
+                            Navigator.pop(context);
+                            widget.onConfirm();
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      disabledBackgroundColor: const Color(0xFFEF4444).withOpacity(0.3),
+                      foregroundColor: Colors.white,
+                      disabledForegroundColor: Colors.white.withOpacity(0.45),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 150),
+                      child: Text(
+                        canOpen ? 'Open Anyway' : '$_countdown...',
+                        key: ValueKey(_countdown),
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
