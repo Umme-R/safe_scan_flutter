@@ -51,8 +51,9 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
           );
 
       // if (mounted) setState(() { _result = result; _loading = false; });
-      final score = heuristicResult['score'];
-      final reason = heuristicResult['reason'];
+      final score = heuristicResult['score'] as int;
+      final reason = heuristicResult['reason'] as String;
+      final flags = (heuristicResult['flags'] as List).cast<String>();
 
       final finalResult = SafeBrowsingResult(
         url: widget.url,
@@ -63,6 +64,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
         analysisDetails: [
           'Risk Score: $score / 100',
           reason,
+          ...flags,
         ],
       );
 
